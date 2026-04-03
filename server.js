@@ -6,7 +6,12 @@ const path = require('path');
 const app = express();
 
 app.use(express.json());
-app.use(express.static(__dirname));
+
+app.use(express.static(path.join(__dirname)));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // --- 1. CONFIG & DATABASE CONNECTION ---
 const API_KEY = "f3a98def-7aae-46cc-b98f-e7a5ccb44eb4";

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>SatteBaaz Admin 🔑 - IPL 2026</title>
+    <style>
+        body { background: #121212; color: white; text-align: center; font-family: Arial; padding: 20px; }
+        .match-card { background: #1f1f1f; border: 1px solid #444; padding: 15px; margin: 10px auto; max-width: 500px; border-radius: 12px; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .win-btn { background: #4caf50; color: white; }
+        #status { color: #ffeb3b; margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Admin Panel: Winner Declaration 🏆</h1>
+    <div id="admin-matches">Loading Live Matches...</div>
+    <div id="status"></div>
+
+<div id="admin-p2p" style="background:#1e1e1e; color:white; padding:20px; margin-top:20px; border:2px solid #fbc02d;">
+    <h2>🤝 Active P2P Challenges</h2>
+    <div id="p2p-admin-list">Loading active bets...</div>
+</div>
+
+    <script>
+        // 1. Live Matches Load Karo taaki winner select kar sako
+       async function loadAdminMatches() {
+    const res = await fetch('/get-live-ipl');
+    const matches = await res.json();
+    const container = document.getElementById('admin-matches');
+
+    container.innerHTML = matches.map(m => `
+        <div class="match-card" style="background:#1f1f1f; padding:10px; margin-bottom:5px;">
+            <h4>${m.name}</h4>
+            <button onclick="declareWinner('${m.teamA}')">Win ${m.teamA}</button>
+            <button onclick="declareWinner('${m.teamB}')">Win ${m.teamB}</button>
+        </div>
+    `).join('');
+}
+
+
+        // 2. Winner Declare Karne ka Function
+        async function declareWinner(teamName) {
+            if(!confirm(`Kya aap confirm hain ki ${teamName} jeet gayi hai?`)) return;
+            
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = "Processing Payouts... Please wait!";
+
+            try {
+                const res = await fetch('/declare-winner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ winner: teamName })
+                });
+                const data = await res.json();
+                statusDiv.innerText = "✅ Success: " + data.msg;
+                alert("Sabka balance update ho gaya!");
+            } catch (err) {
+                statusDiv.innerText = "❌ Error in declaration!";
+            }
+        }
+
+        loadAdminMatches();
+        
+         // Har 10 second mein active shartein load karega
+    async function loadAdminP2P() {
+        const res = await fetch('/admin/get-active-challenges');
+        const data = await res.json();
+        const list = document.getElementById('p2p-admin-list');
+        
+        if(data.length === 0) {
+            list.innerHTML = "<p>Abhi koi active shart nahi hai.</p>";
+            return;
+        }
+
+        list.innerHTML = data.map(c => `
+            <div style="border-bottom:1px solid #444; padding:10px;">
+                <p><b>${c.creator}</b> vs <b>${c.acceptor}</b></p>
+                <p>Shart: ${c.condition} | Amount: ₹${c.amount}</p>
+                <button onclick="p2pWin('${c._id}', '${c.creator}')" style="background:green; color:white;">${c.creator} Jita</button>
+                <button onclick="p2pWin('${c._id}', '${c.acceptor}')" style="background:green; color:white;">${c.acceptor} Jita</button>
+            </div>
+        `).join('');
+    }
+
+    async function p2pWin(id, name) {
+        if(!confirm(`${name} ko winner declare kar dein?`)) return;
+        
+        const res = await fetch('/declare-p2p-winner', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ challengeId: id, winnerName: name })
+        });
+        const result = await res.json();
+        alert(result.msg);
+        loadAdminP2P(); // Refresh list
+    }
+
+    setInterval(loadAdminP2P, 5000);
+    loadAdminP2P();
+    </script>
+</body>
+</html>

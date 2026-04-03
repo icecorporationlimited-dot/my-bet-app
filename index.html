@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SatteBaaz Pro - IPL Live Edition</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: white; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #1f1f1f; padding: 15px; border-radius: 10px; position: sticky; top: 0; z-index: 100; }
+        .balance { color: #4caf50; font-weight: bold; font-size: 1.2rem; }
+        
+        #login-section { background: #1f1f1f; margin-top: 50px; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid #4caf50; }
+        #login-section input { background: #2c2c2c; border: 1px solid #444; color: white; padding: 12px; width: 80%; border-radius: 8px; margin-bottom: 15px; font-size: 1rem; }
+        #login-section button { background: #4caf50; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        #main-game { display: none; }
+
+        /* Match Card Styling */
+        .match-card { border: 1px solid #444; padding: 15px; margin-top: 15px; border-radius: 12px; background: #1f1f1f; transition: 0.3s; }
+        .team-btn { background: #333; border: 2px solid #444; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer; flex: 1; margin: 0 5px; }
+        .team-btn.active { border-color: #fbc02d; background: #453b00; }
+        
+        .input-group { margin: 15px 0; }
+        input[type="number"] { background: #2c2c2c; border: 1px solid #444; color: white; padding: 10px; width: 90%; border-radius: 5px; text-align: center; font-size: 1.1rem; }
+        
+        .place-bet-btn { background: #4caf50; color: white; border: none; padding: 15px; border-radius: 30px; font-weight: bold; width: 100%; font-size: 1.1rem; cursor: pointer; margin-top: 10px; }
+        .history-box { margin-top: 30px; background: #1f1f1f; padding: 15px; border-radius: 15px; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span>SatteBaaz Pro 🚀</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="balance">₹<span id="wallet">0</span></div>
+            <button onclick="logout()" style="background:red; color:white; border:none; border-radius:5px; padding:5px; cursor:pointer;">X</button>
+        </div>
+    </div>
+    
+<div style="background:#333; padding:10px; border-radius:10px; margin-top:10px; text-align:center;">
+    <p style="font-size:0.8rem; margin:0;">Apne dost ko jodo aur ₹50 kamao!</p>
+    <b style="color:#fbc02d; font-size:1.1rem;" id="my-refer-code">CODE</b>
+</div>
+
+<div id="login-section">
+    <h2>IPL 2026 Live Betting</h2>
+    <input type="text" id="userName" placeholder="Apna Naam Likho">
+    <br>
+    <input type="text" id="referCodeInput" placeholder="Referral Code (Optional)" style="border-color: #fbc02d;">
+    <br>
+    <button onclick="login()">Enter Dashboard</button>
+</div>
+
+<div id="user-stats" style="display: flex; justify-content: space-around; background: #1f1f1f; padding: 15px; margin-top: 15px; border-radius: 12px; border: 1px solid #444; text-align: center;">
+    <div>
+        <div style="color: #888; font-size: 0.8rem;">Total Bets</div>
+        <div id="stat-total" style="font-size: 1.2rem; font-weight: bold;">0</div>
+    </div>
+    <div style="border-left: 1px solid #333; padding-left: 15px;">
+        <div style="color: #4caf50; font-size: 0.8rem;">Wins ✅</div>
+        <div id="stat-wins" style="font-size: 1.2rem; font-weight: bold; color: #4caf50;">0</div>
+    </div>
+    <div style="border-left: 1px solid #333; padding-left: 15px;">
+        <div style="color: #f44336; font-size: 0.8rem;">Losses ❌</div>
+        <div id="stat-loss" style="font-size: 1.2rem; font-weight: bold; color: #f44336;">0</div>
+    </div>
+</div>
+
+<div id="leaderboard-section" style="margin-top: 25px; background: #1f1f1f; padding: 15px; border-radius: 15px; border: 1px solid #fbc02d;">
+    <h4 style="margin: 0 0 10px 0; color: #fbc02d; text-align: center;">🏆 Top Players (Saharanpur Kings)</h4>
+    <div id="leaderboard-list">
+        <p style="text-align:center; font-size:0.8rem; color:#888;">Loading Rankings...</p>
+    </div>
+</div>
+
+<div id="social-feed" style="margin-top:20px; background:#1a1a1a; padding:10px; border-radius:15px; border:1px solid #444;">
+    <h4 style="color:#2196F3; margin:0 0 10px 0;">💬 Social Feed</h4>
+    <div id="msg-container" style="height:150px; overflow-y:auto; font-size:0.8rem; margin-bottom:10px;">
+        </div>
+    <div style="display:flex; gap:5px;">
+        <input type="text" id="chat-input" placeholder="Kuch bolo..." style="flex:1; padding:5px; border-radius:5px;">
+        <button onclick="sendMsg()" style="background:#2196F3; border:none; padding:5px 10px; border-radius:5px; color:white;">Send</button>
+    </div>
+</div>
+
+<div id="p2p-section" style="background: #1e1e1e; padding: 15px; border-radius: 10px; margin-top: 20px;">
+    <h3>🤝 Doston ki Shartein (P2P)</h3>
+    <input type="text" id="shartText" placeholder="Shart kya hai? (e.g. Kohli 50 marega)">
+    <input type="number" id="shartAmount" placeholder="Kitne ki?">
+    <button onclick="createShart()" style="background: #fbc02d; color: black; border: none; padding: 5px 10px; cursor: pointer;">Lalkaro!</button>
+    
+    <div id="open-challenges" style="margin-top: 15px;">
+        </div>
+</div>
+
+
+
+    <div id="main-game">
+        <div id="match-container">
+            <p style="text-align:center; color:#888;">Live matches dhoond raha hoon...</p>
+        </div>
+
+        <div class="bet-card" style="background:#1f1f1f; padding:15px; margin-top:20px; border-radius:15px; border:1px dashed #4caf50;">
+            <h4 style="margin:0; text-align:center;">Selected: <span id="selectedDisplay">None</span></h4>
+            <div class="input-group" style="text-align:center;">
+                <input type="number" id="betAmount" placeholder="Kitne paise lagane hain?">
+            </div>
+            <button class="place-bet-btn" onclick="placeBet()">PLACE BET NOW</button>
+        </div>
+
+        <div class="history-box">
+            <h4>My Betting History 📜</h4>
+            <table style="width: 100%; text-align: left; border-collapse: collapse;" id="historyTable">
+                <tr style="color: #888; border-bottom: 1px solid #333;">
+                    <th style="padding: 10px;">Match/Team</th>
+                    <th>Amt</th>
+                    <th>Status</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+<script>
+    let selectedTeam = '';
+    let currentUser = "";
+    let currentBalance = 0;
+
+// --- 1. Table aur Stats Update Karne Ka Combined Function ---
+function updateHistoryTable(bets) {
+    const table = document.getElementById('historyTable');
+    
+    // UI Elements (Stats waale)
+    const statTotal = document.getElementById('stat-total');
+    const statWins = document.getElementById('stat-wins');
+    const statLoss = document.getElementById('stat-loss');
+
+    // Table Header reset
+    table.innerHTML = `
+        <tr style="color: #888; border-bottom: 1px solid #333;">
+            <th style="padding: 10px;">Team</th>
+            <th>Amount</th>
+            <th>Status</th>
+        </tr>`;
+
+    if (!bets || bets.length === 0) {
+        if(statTotal) statTotal.innerText = "0";
+        if(statWins) statWins.innerText = "0";
+        if(statLoss) statLoss.innerText = "0";
+        return;
+    }
+
+    // Stats Variables
+    let wins = 0;
+    let losses = 0;
+
+    // Latest bet sabse upar dikhane ke liye reverse()
+    [...bets].reverse().forEach(bet => {
+        // Stats Calculation
+        if(bet.status === 'won') wins++;
+        else if(bet.status === 'lost') losses++;
+
+        // Table Row Insertion
+        let row = table.insertRow();
+        let color = bet.status === 'won' ? '#4caf50' : (bet.status === 'lost' ? '#f44336' : '#ffeb3b');
+        
+        row.innerHTML = `
+            <td style="padding: 10px;">${bet.team}</td>
+            <td>₹${bet.amount}</td>
+            <td style="color: ${color}; font-weight: bold;">${bet.status.toUpperCase()}</td>
+        `;
+    });
+
+    // Stats ko UI par chipkao
+    if(statTotal) statTotal.innerText = bets.length;
+    if(statWins) statWins.innerText = wins;
+    if(statLoss) statLoss.innerText = losses;
+}
+
+
+    // --- 2. Load Matches from API ---
+    async function loadMatches() {
+    const container = document.getElementById('match-container');
+    try {
+        const res = await fetch('/get-live-ipl');
+        const matches = await res.json();
+        
+        container.innerHTML = matches.map(m => `
+            <div class="match-card" style="border:1px solid #444; padding:15px; margin-bottom:10px; border-radius:10px;">
+                <h4 style="margin:0; color:#fbc02d;">${m.name}</h4>
+                <p style="font-size:0.8rem; color:#888;">🕒 ${m.time} | 🏟️ ${m.venue}</p>
+                <div style="display:flex; justify-content:space-around; margin-top:10px;">
+                    <button class="team-btn" onclick="selectTeam('${m.teamA}', this)">${m.teamA}</button>
+                    <button class="team-btn" onclick="selectTeam('${m.teamB}', this)">${m.teamB}</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        container.innerHTML = "<p>Matches nahi mil rahe!</p>";
+    }
+}
+
+
+    // --- 3. Login & Session ---
+    window.onload = function() {
+        const savedUser = localStorage.getItem('sattebaaz_user');
+        if (savedUser) { document.getElementById('userName').value = savedUser; login(); }
+    };
+
+    async function login() {
+    let name = document.getElementById('userName').value;
+    let rCode = document.getElementById('referCodeInput').value;
+    
+    // Simple Device ID generator (Browser info + screen resolution)
+    const deviceId = navigator.userAgent + screen.width + screen.height;
+
+    if(!name) return alert("Naam dalo!");
+
+    try {
+        const res = await fetch('/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                name: name, 
+                referCode: rCode, 
+                deviceId: deviceId // Device ID bhej rahe hain
+            })
+        });
+        const data = await res.json();
+        
+        currentUser = data.username;
+        currentBalance = data.balance;
+        
+        // --- AB USERNAME NAHI, UNIQUE CODE DIKHAO ---
+        document.getElementById('my-refer-code').innerText = data.referralCode; 
+        
+        localStorage.setItem('sattebaaz_user', currentUser);
+        document.getElementById('wallet').innerText = currentBalance;
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('main-game').style.display = 'block';
+        
+        updateHistoryTable(data.bets);
+        loadMatches();
+        loadLeaderboard();
+        loadMsgs();
+    } catch (err) { alert("Server error!"); }
+}
+
+
+
+    function selectTeam(team, btn) {
+        selectedTeam = team;
+        document.getElementById('selectedDisplay').innerText = team;
+        document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    async function placeBet() {
+        let amount = document.getElementById('betAmount').value;
+        if(!selectedTeam || amount <= 0 || amount > currentBalance) return alert("Invalid Bet!");
+        try {
+            const res = await fetch('/place-bet', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: currentUser, team: selectedTeam, amount: parseInt(amount) })
+            });
+            const data = await res.json();
+            if(res.ok) {
+                currentBalance = data.newBalance;
+                document.getElementById('wallet').innerText = currentBalance;
+                updateHistoryTable(data.user.bets);
+                alert("✅ Bet Lag Gayi!");
+            }
+        } catch (err) { alert("Error!"); }
+    }
+
+    function logout() {
+        localStorage.removeItem('sattebaaz_user');
+        location.reload();
+    }
+    
+    // --- 4. Leaderboard ---
+  async function loadLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    try {
+        const res = await fetch('/get-live-ipl'); // Pehle check karne ke liye (ya niche wala fetch)
+        const response = await fetch('/get-leaderboard');
+        const data = await response.json();
+
+        if (data.length === 0) return;
+
+        list.innerHTML = data.map((user, index) => `
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333;">
+                <span>
+                    <b style="color: ${index === 0 ? '#fbc02d' : '#888'};">${index + 1}.</b> 
+                    ${user.name} ${index === 0 ? '👑' : ''}
+                </span>
+                <span style="font-weight: bold; color: #4caf50;">₹${user.balance}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        list.innerHTML = "<p>Leaderboard loading error!</p>";
+    }
+}
+
+// Ise login hone ke baad aur har bet lagne ke baad call karo
+// login() ke end mein ye line dalo:
+loadLeaderboard();
+
+// --- 5. Feed Logic (FIXED) --- 
+async function sendMsg() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    
+    // Yahan galti thi: currentUser ab sirf ek string hai (naam)
+    const userName = currentUser || "Guest";
+
+    if(!text) return;
+
+    try {
+        await fetch('/send-msg', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: userName, text: text })
+        });
+        input.value = '';
+        loadMsgs(); // Message bhejte hi refresh
+    } catch (err) {
+        console.error("Message send nahi hua:", err);
+    }
+}
+
+// Ye function tere code mein MISSING tha!
+async function loadMsgs() {
+    const cont = document.getElementById('msg-container');
+    if(!cont) return;
+
+    try {
+        const res = await fetch('/get-msgs');
+        const data = await res.json();
+
+        // Naye messages ko niche dikhane ke liye reverse()
+        cont.innerHTML = data.reverse().map(m => `
+            <div style="margin-bottom:5px; padding:2px; border-bottom:1px solid #222;">
+                <b style="color:#fbc02d;">${m.user}:</b> 
+                <span style="color:#eee;">${m.text}</span>
+            </div>
+        `).join('');
+
+        // Auto-scroll to bottom
+        cont.scrollTop = cont.scrollHeight;
+    } catch (err) {
+        console.log("Chat error:", err);
+    }
+}
+
+// Har 3 second mein chat refresh karo
+setInterval(loadMsgs, 3000);
+
+async function createShart() {
+    const text = document.getElementById('shartText').value;
+    const amount = document.getElementById('shartAmount').value;
+
+    if (!text || !amount || amount < 10) return alert("Shart aur sahi amount toh dalo!");
+
+    try {
+        const res = await fetch('/create-challenge', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                user: currentUser, 
+                amount: parseInt(amount), 
+                condition: text 
+            })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            alert(data.msg);
+            document.getElementById('shartText').value = "";
+            document.getElementById('shartAmount').value = "";
+            refreshUserData(); // Paise katne ke baad wallet update karo
+            loadChallenges();  // List update karo
+        } else {
+            alert(data.msg);
+        }
+    } catch (err) { alert("Server error!"); }
+}
+
+// ... tumhare puraane functions (login, placeBet, etc.) yahan khatam ho rahe honge
+
+// --- P2P CHALLENGE FUNCTIONS ---
+
+async function loadChallenges() {
+    const name = localStorage.getItem('sattebaaz_user'); // Direct localstorage se uthao
+    if (!name) return;
+
+    try {
+        const res = await fetch('/get-challenges');
+        if (!res.ok) throw new Error("Server down");
+        const challenges = await res.json();
+        
+        const container = document.getElementById('open-challenges');
+        if (!container) return;
+
+        container.innerHTML = ""; 
+        challenges.forEach(c => {
+            container.innerHTML += `
+                <div style="background:#2a2a2a; margin:5px; padding:10px; border-radius:5px; border-left:4px solid #fbc02d;">
+                    <p style="margin:0; font-size:14px;"><b>${c.creator}</b> ki shart: ${c.condition}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                        <span>Raashi: 💰${c.amount}</span>
+                        ${c.creator !== name ? 
+                            `<button onclick="acceptShart('${c._id}')" style="background:#4caf50; border:none; color:white; padding:4px 10px; border-radius:3px;">Accept</button>` : 
+                            `<span style="color:#aaa; font-size:12px;">Your Condition</span>`
+                        }
+                    </div>
+                </div>`;
+        });
+    } catch (err) { 
+        console.log("Challenges load Failed!");
+    }
+}
+
+
+async function acceptShart(id) {
+    if (!confirm("Kya aap ye shart pakki karna chahte hain?")) return;
+    try {
+        const res = await fetch('/accept-challenge', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ challengeId: id, user: currentUser })
+        });
+        const data = await res.json();
+        alert(data.msg);
+        refreshUserData(); // Wallet update karne ke liye
+        loadChallenges();  // List update karne ke liye
+    } catch (err) { alert("Accept fail!"); }
+}
+
+// 🔥 IMPORTANT: Login hone ke baad ise call karna zaroori hai
+// Apne login() function ke bilkul last mein ye line likh dena:
+// loadChallenges();
+
+// Aur agar auto-refresh chahiye toh setInterval mein bhi daal do:
+setInterval(loadChallenges, 10000); // Har 10 sec mein nayi shartein check karega
+
+async function refreshUserData() {
+    if (!currentUser) return;
+    try {
+        const res = await fetch('/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name: currentUser, deviceId: navigator.userAgent + screen.width + screen.height })
+        });
+        const data = await res.json();
+        currentBalance = data.balance;
+        document.getElementById('wallet').innerText = currentBalance;
+        updateHistoryTable(data.bets);
+    } catch (err) { console.log("Refresh failed"); }
+}
+
+</script>
+</body>
+</html>
